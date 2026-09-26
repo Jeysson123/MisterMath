@@ -59,7 +59,12 @@ More examples: [`requests.http`](requests.http) or the Postman collection below.
 
 ### Postman
 
-Import [`postman/MisterMath.postman_collection.json`](postman/MisterMath.postman_collection.json).
+Import both files and select the **MisterMath - Local** environment:
+
+| File | Contains |
+|---|---|
+| [`postman/MisterMath.postman_collection.json`](postman/MisterMath.postman_collection.json) | 18 requests with tests |
+| [`postman/MisterMath.postman_environment.json`](postman/MisterMath.postman_environment.json) | `baseUrl`, `username`, `password`, `token`, `transactionId` |
 
 ```mermaid
 flowchart LR
@@ -72,7 +77,7 @@ flowchart LR
 ```
 
 ```bash
-npx newman run postman/MisterMath.postman_collection.json   # 18 requests, 58 assertions
+npx newman run postman/MisterMath.postman_collection.json -e postman/MisterMath.postman_environment.json
 ```
 
 ---

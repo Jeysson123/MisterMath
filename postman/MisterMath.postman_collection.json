@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "MisterMath",
-    "description": "MisterMath API.\n\n1. Run **Auth / Login** first: it stores the JWT in the `token` collection variable, and every other request sends it as `Authorization: Bearer {{token}}`.\n2. Each successful calculation stores its id in `transactionId`, used by **Transactions / Transaction by id**.\n\nRun the whole collection with the Collection Runner or `newman run`.",
+    "description": "MisterMath API.\n\n0. Select the **MisterMath - Local** environment (postman/MisterMath.postman_environment.json).\n1. Run **Auth / Login** first: it stores the JWT in the `token` variable, and every other request sends it as `Authorization: Bearer {{token}}`.\n2. Each successful calculation stores its id in `transactionId`, used by **Transactions / Transaction by id**.\n\nRun the whole collection with the Collection Runner or `newman run`.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -51,7 +51,8 @@
                   "pm.test('Status is 200', () => pm.response.to.have.status(200));",
                   "const json = pm.response.json();",
                   "pm.test('Returns a Bearer token', () => pm.expect(json.data.tokenType).to.eql('Bearer'));",
-                  "pm.collectionVariables.set('token', json.data.accessToken);"
+                  "// Guarda en el environment seleccionado; sin environment, en las variables de la colecci\u00f3n.",
+                  "(pm.environment.name ? pm.environment : pm.collectionVariables).set('token', json.data.accessToken);"
                 ]
               }
             }
@@ -157,7 +158,7 @@
                   "pm.test('Engine is SingletonCalculationEngine', () => pm.expect(json.data.engine).to.eql('SingletonCalculationEngine'));",
                   "pm.test('Result is 15', () => pm.expect(Number(json.data.result)).to.eql(15));",
                   "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
-                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                  "(pm.environment.name ? pm.environment : pm.collectionVariables).set('transactionId', json.data.transactionId);"
                 ]
               }
             }
@@ -206,7 +207,7 @@
                   "pm.test('Engine is FactoryCalculationEngine', () => pm.expect(json.data.engine).to.eql('FactoryCalculationEngine'));",
                   "pm.test('Result is 2.5', () => pm.expect(Number(json.data.result)).to.eql(2.5));",
                   "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
-                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                  "(pm.environment.name ? pm.environment : pm.collectionVariables).set('transactionId', json.data.transactionId);"
                 ]
               }
             }
@@ -255,7 +256,7 @@
                   "pm.test('Engine is StrategyCalculationEngine', () => pm.expect(json.data.engine).to.eql('StrategyCalculationEngine'));",
                   "pm.test('Result is 42', () => pm.expect(Number(json.data.result)).to.eql(42));",
                   "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
-                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                  "(pm.environment.name ? pm.environment : pm.collectionVariables).set('transactionId', json.data.transactionId);"
                 ]
               }
             }
@@ -304,7 +305,7 @@
                   "pm.test('Engine is BuilderCalculationEngine', () => pm.expect(json.data.engine).to.eql('BuilderCalculationEngine'));",
                   "pm.test('Result is 1024', () => pm.expect(Number(json.data.result)).to.eql(1024));",
                   "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
-                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                  "(pm.environment.name ? pm.environment : pm.collectionVariables).set('transactionId', json.data.transactionId);"
                 ]
               }
             }
@@ -353,7 +354,7 @@
                   "pm.test('Engine is StrategyCalculationEngine', () => pm.expect(json.data.engine).to.eql('StrategyCalculationEngine'));",
                   "pm.test('Result is -5', () => pm.expect(Number(json.data.result)).to.eql(-5));",
                   "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
-                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                  "(pm.environment.name ? pm.environment : pm.collectionVariables).set('transactionId', json.data.transactionId);"
                 ]
               }
             }
@@ -402,7 +403,7 @@
                   "pm.test('Engine is FactoryCalculationEngine', () => pm.expect(json.data.engine).to.eql('FactoryCalculationEngine'));",
                   "pm.test('Result is 1', () => pm.expect(Number(json.data.result)).to.eql(1));",
                   "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
-                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                  "(pm.environment.name ? pm.environment : pm.collectionVariables).set('transactionId', json.data.transactionId);"
                 ]
               }
             }
