@@ -1,0 +1,57 @@
+# Cada valor ${VARIABLE:por_defecto} se puede sobreescribir con una variable de entorno.
+# docker-compose.yml las define para que la app encuentre a Postgres y Redis dentro de la red.
+
+spring:
+  application:
+    name: mistermath
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mistermath}
+    username: ${DB_USERNAME:mistermath}
+    password: ${DB_PASSWORD:mistermath}
+
+  jpa:
+    # Hibernate crea/actualiza la tabla "transactions" al arrancar (suficiente para aprender).
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      # Redis se usa con StringRedisTemplate, no con repositorios Spring Data.
+      repositories:
+        enabled: false
+
+  jackson:
+    # Acepta "Num1" o "num1" en el payload.
+    mapper:
+      accept-case-insensitive-properties: true
+    # 1E+1 se imprime como 10.
+    generator:
+      write-bigdecimal-as-plain: true
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:mistermath-local-secret-change-me-at-least-32-bytes}
+      expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
+    user:
+      username: ${APP_USERNAME:admin}
+      password: ${APP_PASSWORD:admin123}
+  cache:
+    transactions-key: mistermath:transactions
+    max-size: 100
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    com.math: INFO

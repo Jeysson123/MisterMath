@@ -1,0 +1,61 @@
+# docker compose up --build
+#   postgres → guarda request, response y fecha (tabla transactions)
+#   redis    → lista de transacciones recientes
+#   app      → MisterMath en http://localhost:8080
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: mistermath-postgres
+    environment:
+      POSTGRES_DB: mistermath
+      POSTGRES_USER: mistermath
+      POSTGRES_PASSWORD: mistermath
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mistermath -d mistermath"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: mistermath-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build: .
+    container_name: mistermath-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/mistermath
+      DB_USERNAME: mistermath
+      DB_PASSWORD: mistermath
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-mistermath-docker-secret-change-me-at-least-32-bytes}
+      APP_USERNAME: ${APP_USERNAME:-admin}
+      APP_PASSWORD: ${APP_PASSWORD:-admin123}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:

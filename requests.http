@@ -1,0 +1,58 @@
+### 1. Login → copia data.accessToken en @token
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "admin123" }
+
+###
+@token = PASTE_TOKEN_HERE
+
+### 2. SINGLETON
+POST http://localhost:8080/api/v1/calculations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "num1": 10, "num2": 5, "operation": "+", "pattern": "SINGLETON" }
+
+### 3. FACTORY
+POST http://localhost:8080/api/v1/calculations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "num1": 10, "num2": 3, "operation": "/", "pattern": "FACTORY" }
+
+### 4. STRATEGY
+POST http://localhost:8080/api/v1/calculations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "num1": 7, "num2": 6, "operation": "*", "pattern": "STRATEGY" }
+
+### 5. BUILDER
+POST http://localhost:8080/api/v1/calculations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "num1": 2, "num2": 10, "operation": "^", "pattern": "BUILDER" }
+
+### 6. Error 422: division by zero
+POST http://localhost:8080/api/v1/calculations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "num1": 1, "num2": 0, "operation": "/", "pattern": "FACTORY" }
+
+### 7. Error 400: validation
+POST http://localhost:8080/api/v1/calculations
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{ "num2": 0, "operation": "x", "pattern": "OBSERVER" }
+
+### 8. Recent transactions (Redis)
+GET http://localhost:8080/api/v1/transactions?limit=10
+Authorization: Bearer {{token}}
+
+### 9. One transaction (PostgreSQL)
+GET http://localhost:8080/api/v1/transactions/1
+Authorization: Bearer {{token}}
