@@ -55,7 +55,25 @@ curl -s localhost:8080/api/v1/transactions -H "Authorization: Bearer $TOKEN"
 curl -s localhost:8080/api/v1/transactions/1 -H "Authorization: Bearer $TOKEN"
 ```
 
-More examples: [`requests.http`](requests.http).
+More examples: [`requests.http`](requests.http) or the Postman collection below.
+
+### Postman
+
+Import [`postman/MisterMath.postman_collection.json`](postman/MisterMath.postman_collection.json).
+
+```mermaid
+flowchart LR
+    L["Auth / Login"] -->|saves token| T{{"{{token}}"}}
+    T --> C["Calculations<br/>SINGLETON · FACTORY · STRATEGY · BUILDER"]
+    C -->|saves id| I{{"{{transactionId}}"}}
+    T --> Q1["Recent transactions (Redis)"]
+    I --> Q2["Transaction by id (PostgreSQL)"]
+    T --> E["Errors<br/>400 · 401 · 404 · 422"]
+```
+
+```bash
+npx newman run postman/MisterMath.postman_collection.json   # 18 requests, 58 assertions
+```
 
 ---
 

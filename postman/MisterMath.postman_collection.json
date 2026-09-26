@@ -1,0 +1,860 @@
+{
+  "info": {
+    "name": "MisterMath",
+    "description": "MisterMath API.\n\n1. Run **Auth / Login** first: it stores the JWT in the `token` collection variable, and every other request sends it as `Authorization: Bearer {{token}}`.\n2. Each successful calculation stores its id in `transactionId`, used by **Transactions / Transaction by id**.\n\nRun the whole collection with the Collection Runner or `newman run`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "username",
+      "value": "admin"
+    },
+    {
+      "key": "password",
+      "value": "admin123"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "transactionId",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Returns a Bearer token', () => pm.expect(json.data.tokenType).to.eql('Bearer'));",
+                  "pm.collectionVariables.set('token', json.data.accessToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Login - wrong password (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                  "pm.test('Explains the error', () => pm.expect(pm.response.json().data.message).to.eql('Invalid username or password'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"wrong\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Calculations (Command)",
+      "item": [
+        {
+          "name": "SINGLETON  10 + 5",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 201', () => pm.expect(json.code).to.eql(201));",
+                  "pm.test('Engine is SingletonCalculationEngine', () => pm.expect(json.data.engine).to.eql('SingletonCalculationEngine'));",
+                  "pm.test('Result is 15', () => pm.expect(Number(json.data.result)).to.eql(15));",
+                  "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
+                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 10,\n  \"num2\": 5,\n  \"operation\": \"+\",\n  \"pattern\": \"SINGLETON\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "FACTORY  10 / 4",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 201', () => pm.expect(json.code).to.eql(201));",
+                  "pm.test('Engine is FactoryCalculationEngine', () => pm.expect(json.data.engine).to.eql('FactoryCalculationEngine'));",
+                  "pm.test('Result is 2.5', () => pm.expect(Number(json.data.result)).to.eql(2.5));",
+                  "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
+                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 10,\n  \"num2\": 4,\n  \"operation\": \"/\",\n  \"pattern\": \"FACTORY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "STRATEGY  7 * 6",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 201', () => pm.expect(json.code).to.eql(201));",
+                  "pm.test('Engine is StrategyCalculationEngine', () => pm.expect(json.data.engine).to.eql('StrategyCalculationEngine'));",
+                  "pm.test('Result is 42', () => pm.expect(Number(json.data.result)).to.eql(42));",
+                  "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
+                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 7,\n  \"num2\": 6,\n  \"operation\": \"*\",\n  \"pattern\": \"STRATEGY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "BUILDER  2 ^ 10",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 201', () => pm.expect(json.code).to.eql(201));",
+                  "pm.test('Engine is BuilderCalculationEngine', () => pm.expect(json.data.engine).to.eql('BuilderCalculationEngine'));",
+                  "pm.test('Result is 1024', () => pm.expect(Number(json.data.result)).to.eql(1024));",
+                  "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
+                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 2,\n  \"num2\": 10,\n  \"operation\": \"^\",\n  \"pattern\": \"BUILDER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "STRATEGY  10 - 15",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 201', () => pm.expect(json.code).to.eql(201));",
+                  "pm.test('Engine is StrategyCalculationEngine', () => pm.expect(json.data.engine).to.eql('StrategyCalculationEngine'));",
+                  "pm.test('Result is -5', () => pm.expect(Number(json.data.result)).to.eql(-5));",
+                  "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
+                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 10,\n  \"num2\": 15,\n  \"operation\": \"-\",\n  \"pattern\": \"STRATEGY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "FACTORY  10 % 3",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 201', () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 201', () => pm.expect(json.code).to.eql(201));",
+                  "pm.test('Engine is FactoryCalculationEngine', () => pm.expect(json.data.engine).to.eql('FactoryCalculationEngine'));",
+                  "pm.test('Result is 1', () => pm.expect(Number(json.data.result)).to.eql(1));",
+                  "pm.test('Trace explains the flow', () => pm.expect(json.data.trace).to.be.an('array').that.is.not.empty);",
+                  "pm.collectionVariables.set('transactionId', json.data.transactionId);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 10,\n  \"num2\": 3,\n  \"operation\": \"%\",\n  \"pattern\": \"FACTORY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions (Query)",
+      "item": [
+        {
+          "name": "Recent transactions (Redis)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 200', () => pm.expect(json.code).to.eql(200));",
+                  "pm.test('Returns a list of at most 10', () => pm.expect(json.data).to.be.an('array').with.length.at.most(10));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions?limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Transaction by id (PostgreSQL)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 200', () => pm.expect(json.code).to.eql(200));",
+                  "pm.test('Has request, response and date', () => pm.expect(json.data).to.have.all.keys('id', 'request', 'response', 'createdAt'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/{{transactionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "{{transactionId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Errors",
+      "item": [
+        {
+          "name": "Division by zero (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 422', () => pm.expect(json.code).to.eql(422));",
+                  "pm.test('Explains the error', () => pm.expect(json.data.message).to.eql('Division by zero is not allowed'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 1,\n  \"num2\": 0,\n  \"operation\": \"/\",\n  \"pattern\": \"FACTORY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Decimal exponent (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 422', () => pm.response.to.have.status(422));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 422', () => pm.expect(json.code).to.eql(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 2,\n  \"num2\": 1.5,\n  \"operation\": \"^\",\n  \"pattern\": \"BUILDER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Validation errors (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 400', () => pm.expect(json.code).to.eql(400));",
+                  "pm.test('Lists every invalid field', () => pm.expect(json.data.fields).to.have.all.keys('num1', 'operation', 'pattern'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num2\": 5,\n  \"operation\": \"x\",\n  \"pattern\": \"OBSERVER\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Malformed JSON (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 400', () => pm.expect(json.code).to.eql(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{ not json",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Without token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 401', () => pm.response.to.have.status(401));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 401', () => pm.expect(json.code).to.eql(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"num1\": 1,\n  \"num2\": 2,\n  \"operation\": \"+\",\n  \"pattern\": \"FACTORY\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calculations",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "calculations"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        },
+        {
+          "name": "Limit out of range (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 400', () => pm.response.to.have.status(400));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 400', () => pm.expect(json.code).to.eql(400));",
+                  "pm.test('Points at limit', () => pm.expect(json.data.fields).to.have.property('limit'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions?limit=500",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "500"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Transaction not found (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status is 404', () => pm.response.to.have.status(404));",
+                  "const json = pm.response.json();",
+                  "pm.test('Wrapper code is 404', () => pm.expect(json.code).to.eql(404));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/transactions/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "transactions",
+                "999999"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('App is UP', () => pm.expect(pm.response.json().status).to.eql('UP'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "actuator",
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
